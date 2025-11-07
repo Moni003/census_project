@@ -42,21 +42,17 @@ inc2 = float(input("Inclinaison i2 (°) : "))
 # 4. Calcul des positions r1 et r2
 r1 = orbital_elements_to_r_poliastro(a1, e1, inc1, attractor=attractor)
 
-# Try to compute r2 but avoid the degenerate case where r1 and r2 are collinear (which breaks Izzo's lambert)
-# If the default angles produce collinear vectors, vary the true anomaly of point 2 until we get a non-collinear pair.
+# Ajustement de l'anomalie vraie pour éviter colinéarité
 nu_candidates_deg = [0, 10, 30, 45, 90, 135, 180]
 r2 = None
 for nu_try in nu_candidates_deg:
     r2_try = orbital_elements_to_r_poliastro(a2, e2, inc2, nu_deg=nu_try, attractor=attractor)
-    cross_norm = np.linalg.norm(np.cross(r1, r2_try))
-    if cross_norm > 1e-6:  # not collinear
+    if np.linalg.norm(np.cross(r1, r2_try)) > 1e-6:
         r2 = r2_try
         if nu_try != 0:
             print(f"Note: adjusted true anomaly for point 2 to {nu_try}° to avoid collinear positions.")
         break
-
 if r2 is None:
-    # fallback: use the last candidate even if collinear (should be rare)
     r2 = orbital_elements_to_r_poliastro(a2, e2, inc2, nu_deg=nu_candidates_deg[-1], attractor=attractor)
 
 print("\nr1 (m) =", r1)
@@ -77,4 +73,3 @@ print("Date point 2 :", t2_dt.isoformat())
 write_docks_file(f"InitCond_Lambert_{body_selected}.txt", t1_str, r1, v1)
 
 print("\n=== Fin du script ===")
-
