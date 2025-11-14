@@ -8,12 +8,11 @@ Structure du projet
 
 MonteCarloMaker/
 │
-├── montecarlo_utils.py   # Fonctions principales : génération Monte Carlo, conversion éléments → position, écriture fichiers DOCKS
-├── main.py               # Script principal interactif
-├── predefined_bodies.py  # Liste des corps célestes connus et leurs paramètres (μ, rayon)
-└── tests/                # Scripts de test et génération automatique de fichiers de conditions initiales
-    └── test_mc_generation.py
-
+├── montecarlo_utils.py # Fonctions principales : génération Monte Carlo, conversion éléments → position, écriture fichiers DOCKS
+├── main.py # Script principal interactif
+├── predefined_bodies.py # Liste des corps célestes connus et leurs paramètres (μ, rayon)
+└── tests/ # Scripts de test et génération automatique de fichiers de conditions initiales
+└── test_mc_generation.py
 ---
 
 
