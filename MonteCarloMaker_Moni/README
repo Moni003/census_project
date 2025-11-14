@@ -1,0 +1,83 @@
+MonteCarloMaker
+
+MonteCarloMaker est un ensemble de scripts Python permettant de générer des conditions initiales orbitales aléatoires pour des trajectoires autour d’un astre. Ces fichiers peuvent ensuite être utilisés dans DOCKS Trajectories pour simuler des trajectoires balistiques (sans propulsion continue).
+
+---
+
+Structure du projet
+
+MonteCarloMaker/
+│
+├── montecarlo_utils.py   # Fonctions principales : génération Monte Carlo, conversion éléments → position, écriture fichiers DOCKS
+├── main.py               # Script principal interactif
+├── predefined_bodies.py  # Liste des corps célestes connus et leurs paramètres (μ, rayon)
+└── tests/                # Scripts de test et génération automatique de fichiers de conditions initiales
+    └── test_mc_generation.py
+
+---
+
+Description des fichiers principaux
+
+montecarlo_utils.py
+- generate_random_orbital_elements(a_range, e_range, i_range) : génère des paramètres orbitaux aléatoires dans les plages spécifiées.
+- orbital_elements_to_r(attractor, a, e, inc, Omega, omega, nu) : convertit les éléments orbitaux en vecteur position 3D.
+- write_docks_file(filename, date_str, r, v) : écrit un fichier de conditions initiales compatible DOCKS.
+
+main.py
+- Script interactif permettant de générer N échantillons aléatoires de conditions initiales autour d’un corps central.
+- L’utilisateur fournit :
+  - le corps central (astre),
+  - les plages de demi-grand axe, excentricité et inclinaison,
+  - le nombre d’échantillons Monte Carlo,
+  - la date initiale.
+- Pour chaque échantillon généré :
+  - vecteur position 3D
+  - vecteur vitesse initiale (approximation circulaire Keplerienne)
+  - fichier DOCKS compatible
+
+predefined_bodies.py
+- Contient un dictionnaire known_bodies avec les paramètres des corps célestes (μ, rayon)
+- Utilisé pour calculer les vitesses orbitales approximatives
+
+tests/test_mc_generation.py
+- Génère automatiquement plusieurs fichiers de conditions initiales Monte Carlo pour un corps choisi
+- Permet de tester la robustesse et la variété des échantillons générés
+
+---
+
+Ordre recommandé d’utilisation
+
+1. Préparer vos paramètres
+   - Choisir le corps central (ex : Terre, Mars)
+   - Définir les plages de paramètres orbitaux (a, e, i)
+   - Choisir le nombre d’échantillons Monte Carlo
+
+2. Lancer la génération
+   python main.py
+
+3. Vérifier les fichiers générés
+   - Les fichiers se trouvent dans le répertoire courant
+   - Chaque fichier contient : date ISO, position (m), vitesse (m/s)
+
+4. Utiliser DOCKS Trajectories
+   - Importer les fichiers DOCKS générés pour simuler les trajectoires
+   - Les positions et vitesses sont balistiques, aucune propulsion continue n’est modélisée
+
+---
+
+Remarques
+
+- Balistique uniquement : la méthode Monte Carlo génère des conditions initiales pour des trajectoires sous gravité centrale uniquement
+- Unités : positions en mètres, vitesses en m/s
+- Robustesse : le script ajuste automatiquement les anomalies vraies pour éviter les positions colinéaires
+- Corps pris en charge : Soleil, Mercure, Vénus, Terre, Lune, Mars, Jupiter, Saturne, Uranus, Neptune
+
+---
+
+Exemple rapide
+
+# Générer 50 échantillons Monte Carlo autour de la Terre
+python main.py
+
+- Saisir la plage de demi-grand axe (ex : 7000e3 9000e3), excentricité (0.0 0.1), inclinaison (0 30), et nombre d’échantillons (50)
+- 50 fichiers InitCond_MC_earth_*.txt seront générés, prêts à être utilisés dans DOCKS Trajectories
