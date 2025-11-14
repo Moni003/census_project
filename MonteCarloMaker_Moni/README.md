@@ -4,7 +4,6 @@ MonteCarloMaker est un ensemble de scripts Python permettant de générer des co
 
 ---
 
-Structure du projet
 
 ## Structure du projet
 
