@@ -2,63 +2,52 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 
-def nbody_accel(r, mu_central, perturbers):
+def nbody_accel(r, bodies_mu):
     """
     Calcul de l'accélération multi-corps.
     
-    r : position actuelle du corps (np.array 3D)
-    mu_central : paramètre gravitationnel du corps central
-    perturbers : liste de tuples (r_perturber, mu_perturber)
+    r : position actuelle du satellite (np.array 3D)
+    bodies_mu : liste de tuples (r_body, mu)
     """
-    # Accélération centrale
-    acc = -mu_central * r / np.linalg.norm(r)**3
-    
-    # Accélérations des perturbateurs
-    for r_p, mu_p in perturbers:
-        diff = r_p - r
-        acc += mu_p * diff / np.linalg.norm(diff)**3
-    
+    acc = np.zeros(3)
+    for r_body, mu in bodies_mu:
+        diff = r - r_body
+        acc += -mu * diff / np.linalg.norm(diff)**3
     return acc
 
-def propagate(r0, v0, tof_seconds, mu_central, perturbers):
+def propagate(r0, v0, bodies_mu):
     """
-    Propagation N-body simple par integration temporelle.
+    Propagation multi-corps simplifiée.
     
     r0 : position initiale (m)
     v0 : vitesse initiale (m/s)
-    tof_seconds : durée du transfert (s)
-    mu_central : paramètre gravitationnel du corps central
-    perturbers : liste de tuples (r_perturber, mu_perturber)
+    bodies_mu : liste de tuples (r_body, mu)
     
     Retourne l'état final [x,y,z,vx,vy,vz]
     """
     def ode(t, y):
         r = y[:3]
         v = y[3:]
-        a = nbody_accel(r, mu_central, perturbers)
+        a = nbody_accel(r, bodies_mu)
         return np.hstack((v, a))
     
     y0 = np.hstack((r0, v0))
-    sol = solve_ivp(ode, [0, tof_seconds], y0, rtol=1e-8, atol=1e-8)
+    
+    # Temps d'intégration arbitraire : on peut prendre une grande valeur pour atteindre t2 mais ça va prendre du temps
+    t_final =1e9  # tof ?????????
+    sol = solve_ivp(ode, [0, t_final], y0, rtol=1e-8, atol=1e-8)
+    
     return sol.y[:, -1]
 
-def score_final_state(state_f, target):
+def f1_cost(r_target, r_final):
     """
-    Calcul du score d'une trajectoire.
-    Ici : distance euclidienne à la cible.
-    
-    state_f : état final [x,y,z,vx,vy,vz]
-    target : position cible [x,y,z]
+    Fonction de coût f1 : norme de la distance finale par rapport à la cible
     """
-    rf = state_f[:3]
-    return np.linalg.norm(rf - target)
+    return np.linalg.norm(r_target - r_final)
 
 def write_docks_file(filename, t0_str, r0, v0):
     """
-    Écriture d'un fichier DOCKS simple.
-    t0_str : date de départ
-    r0 : position initiale [m]
-    v0 : vitesse initiale [m/s]
+    Écriture simple d'un fichier DOCKS.
     """
     r_km = r0 / 1000.0
     v_kms = v0 / 1000.0

@@ -1,0 +1,145 @@
+# THIS FILE IS NOT TO BE RUN
+# Configuration file for DOCKS Propagator.
+
+# -----------General Instructions ---------------------
+
+# 1. Only absolute paths or paths relative to the location of the config file should be given.
+# 2. Some bodies are already defined in the propagator, they can be found in Propagator/src/predefined_bodies.py
+# 3. If predefined bodies or naif ids are used anywhere in the propagation, location of spice kernels should be specified.
+# 4. If text files are used anywhere in the propagation, time/position format for text files should be specified.
+# 5. If text files are used for bodies ephemerides (position, velocity), these should be with respect to SSB
+# 6. If text files are used for bodies rotation matrices, these should represent the rotation matrix from ICRF(J2000) to body_fixed frame
+# 7. Accepted formats/ units:
+#     Time: MJD_2col | MJD_1col | JD | ISOT ; all in TDB
+#     Position: KM | M | AU
+#     Velocity: KM/S | M/S | AU/D
+#     Acceleration: KM/S^2 | M/S^2 | AU/D^2
+# 8. The value of gravitational parameter Mu, wherever needed, should be entered in m³/s²
+# 9. Leave the fields which are not required to be empty
+# 10. Please look at files in example folder to look how the input files should be presented (Spherical harmonics coefficents, Rotation Matrices, Ephemerides)
+
+# -----------Explanation of different parameters ---------------------
+
+#initialConditions: # information about initial conditions
+#  file_path: path to the initial conditions file
+#  format: [time, position, velocity]                        # formats of I.C.
+#  center: [predefined, [name of predefined body]]           # reference center of I.C.
+#      or  [custom, [body name, mu, ephemeris file, none]]   # if using ephemeris file
+#      or  [custom, [body name, mu, none, naif_id]]          # if using naif id, integer value
+#  frame: ICRF                                               # name of reference frame of I.C.
+#      or ECLIPTICJ200
+#
+#ephemInput:  # information about source of ephemerides
+#  spice_kernels: path to kernel directory     # if spice kernels used, enter path
+#  text_files: [time, position, velocity]      # if text files used enter formats of eph file
+#
+#perturbations:  # information about space environment
+#  central_body: earth                           # name of the Center of Propagation, if left empty or not present it will default to SSB.
+#  predefined_bodies: [earth, sun, moon]         # names of bodies from the predefined bodies
+#  new_bodies_added: true                        # true if using point masses other than predefined bodies, else false
+#  complex_grav_model_activated: false           # true if using complex gravitational models, else false
+#  non_grav_perturbations: [srp, propulsion]     # list of non gravitational perturbations, only srp or/and propulsion
+#  propulsion_burns_file: ''                     # path to the burns sequence file for propulsion
+#
+#new_grav_bodies:  # add custom point masses here
+#  body1: # add bodies as, body+index, body1, body2, body3...........
+#    name:                                       # name of body
+#    mu:                                         # gravitational constant of body in m3/s2
+#    radius:                                     # radius of body in m.
+#    ephFile:                                    # if using text file for ephemerides, otherwise leave empty
+#    naifId:                                     # if using naif ID for ephemerides, otherwise leave empty
+#  body2: # add bodies as, body+index, body1, body2, body3...........
+#    name:                                       # name of body
+#    mu:                                         # gravitational constant of body in m3/s2
+#    radius                                      # radius of body in m.
+#    ephFile:                                    # if using text file for ephemerides, otherwise leave empty
+#    naifId:                                     # if using naif ID for ephemerides, otherwise leave empty
+#
+#complex_grav_bodies:  # add complex models here
+#  body1: # add bodies as, body+index, body1, body2, body3...........
+#    name:                                       # name of body                                               
+#    naifId:                                     # if using naif ID for ephemerides, otherwise leave empty
+#    ephFile:                                    # if using text file for ephemerides, otherwise leave empty
+#    rotMatrixFile:                              # if using rotation matrix from ICRF to body frame transformation from file, otherwise leave empty
+#    rotMatrixSpice:                             # if using rotation matrix from ICRF to body frame transformation from spice, insert frame id, otherwise leave empty
+#    quatFile:                                   # if using quaternion for ICRF to body frame transformation, otherwise leave empty             
+#    sphCoeffFile:                               # spherical harmonics coefficient file for spherical harmonics model
+#    sphHarmDegree:                              # spherical harmonics to be computed upto which degree and order, integer
+#
+#probeFeatures:  # features of the probe, needed to compute non gravitational perturbations, until now only required for srp
+#  mass:  # in kg                                   # probe initial mass
+#  srp_area:  # in m²                               # reference area of probe for SRP
+#  srp_coefficient:                                 # coefficient of reflectivity for srp (between 0 and 2); Cr = 0 : Transparent ; Cr = 1 : Black Body (absorbs all) ; Cr = 2 : white body (reflects all); Cr = 1 + reflectivity
+#
+#numericalMethod:  # select the numerical integration method for propagation
+#  method: rkf78                                # rk4, rkf45, rkf56, rkf78, ias15
+#  tolerance: 1e-11                             # tolerance required for ias15 (always, 1e-9 recommended) and rkf45, rkf56, rkf78 (if minimum and maximum time step are different)
+#  safety_factor: 0.85                          # safety factor required for rkf45, rkf56, rkf78 (if minimum and maximum time step are different)
+#
+#timeSettings:   # enter duration of propagation and time step info
+#  method:                                      # Duration | End_Time | Number_of_points
+#  propagation_time:                            # [days(float),'HH(int):MM(int):SS(float)'] | [end JD(float)] | [no. of points(int)]
+#  time_step_unit:                              # minutes | seconds | hours
+#  time_step:  [initial, minimum, maximum]      # min time step for rkf45/rkf56/rkf78/ias15 ; max time step for rkf45/rkf56/rkf78
+#
+#output:  # information to generate output file
+#  directory:                                            # path to directory of output files
+#  file_name:                                            # name of output trajectory
+#  frame: ICRF                                           # name of reference frame of output, ICRF | ECLIPTICJ200 
+#  format: [time, position, velocity, acceleration]                    # formats of output
+#  step_divider:                                         # integer value, write all the steps every n steps; 0 = write all steps at end of propagation (fastest approach)
+#  center: [predefined, [name of body]]                  # reference center of output
+#      or  [custom, [body name, mu, eph file, none]]     # if using ephemeris file
+#      or  [custom, [body name, mu, none, naif id]]      # if using naif id
+
+
+
+# -----------Example of config file ---------------------
+
+initialConditions:
+  file_path: Init_cond_Earth.txt
+  frame: ICRF
+  format: [ISOT, KM, KM/S]
+  center: [predefined, [Earth]]
+
+ephemInput:
+  spice_kernels: ../../kernel/
+  text_files: [ISOT, KM, KM/S]
+
+perturbations:
+  central_body: Earth
+  predefined_bodies: ['Earth', 'Sun', 'Moon']
+  new_bodies_added: false
+  complex_grav_model_activated: false
+  non_grav_perturbations:
+  propulsion_burns_file:
+
+new_grav_bodies:
+  body1:
+
+complex_grav_bodies:
+  body1:
+
+probeFeatures:
+  mass: 10
+  srp_area: 0.5
+  srp_coefficient: 1.2
+
+numericalMethod:
+  method: rk4
+  tolerance: 0
+  safety_factor: 0
+
+timeSettings:
+  method: Duration
+  propagation_time: [1, 00:00:00.000] # 1 days propagation
+  time_step_unit: seconds
+  time_step: [10., 0., 0.]
+
+output:
+  directory: ../outputs
+  file_name: traj_example.txt
+  frame: ICRF
+  format: [MJD_2COL, KM, KM/S, KM/S^2]
+  step_divider: 0
+  center: [predefined, [Earth]]

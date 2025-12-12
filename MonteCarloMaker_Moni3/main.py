@@ -1,14 +1,13 @@
 # main_mc.py
 import numpy as np
 from datetime import datetime
-from mc_utils import propagate, score_final_state, write_docks_file
+from mc_utils import propagate, f1_cost, write_docks_file
 from predefined_bodies import known_bodies
-#import time
-
-#start_time = time.time()
+from tqdm import trange
 
 
 print("\n=== MonteCarloSolverMultiCorps ===\n")
+
 
 # 1. Date initiale
 t0_str = input("Enter the initial date and time [YYYY-MM-DDTHH:MM:SS] [default 2025-01-01T12:00:00]: ") \
@@ -16,104 +15,109 @@ t0_str = input("Enter the initial date and time [YYYY-MM-DDTHH:MM:SS] [default 2
 t0_dt = datetime.fromisoformat(t0_str)
 
 
-# 2. Choix du corps central
+# 2. Corps central
 bodies_names = list(known_bodies.keys())
 print("\nSelect the central body:")
 for i, b in enumerate(bodies_names):
     print(f"{i}: {b}")
-body_index = int(input("Choose a body by number: "))
-body_selected = bodies_names[body_index]
-mu_central = known_bodies[body_selected][0]
-print(f"Central body selected: {body_selected}\n")
+body_index = input(f"Choose a body by number [default 3 = earth]: ") or "3"
+body_index = int(body_index)
+central_body = bodies_names[body_index]
 
 
-# 3. Sélection des corps perturbateurs
-print("\nSelect perturbing bodies (comma-separated indices).")
-print("Available bodies:")
+# 3. Deux autres corps
+print("\nSelect two additional bodies for gravity (comma-separated indices) [default 0,4 = sun, moon]:")
 for i, b in enumerate(bodies_names):
-    print(f"{i}: {b}")
-
-pert_input = input("Enter indices (e.g. 0,2,3) [default: none]: ")
-pert_indices = []
-
-if pert_input.strip() != "":
-    pert_indices = [int(i) for i in pert_input.split(",")]
+    if b != central_body:
+        print(f"{i}: {b}")
+other_input = input("Enter indices: ") or "0,4"  # par défaut Soleil et Lune
+other_indices = [int(i) for i in other_input.split(",")]
+other_bodies = [bodies_names[i] for i in other_indices if bodies_names[i] != central_body]
 
 
-# Construction de la liste des perturbateurs
-perturbers = []
-for idx in pert_indices:
-    name = bodies_names[idx]
-    if name == body_selected:
-        continue  # on exclut automatiquement le corps central
-
-    mu = known_bodies[name][0]
-    
-    # Position FIXE simplifiée (à adapter plus tard avec SPICE)
-    # ICI : on suppose que chaque corps est sur l'axe X à sa distance moyenne au Soleil
-    r_body = np.array([known_bodies[name][1], 0, 0])
-    
-    perturbers.append((r_body, mu))
-
-print(f"Selected perturbing bodies: {[bodies_names[i] for i in pert_indices]}\n")
+print(f"Bodies included: {central_body} + {other_bodies}\n")
 
 
 # 4. Paramètres initiaux
-r_mean = np.array([
-    float(input("R0 x (m) [default 1e11]: ") or 1e11),
-    float(input("R0 y (m) [default 0]: ") or 0.0),
-    float(input("R0 z (m) [default 0]: ") or 0.0)
+r1 = np.array([
+    float(input("R1 x (m) [default 7e6]: ") or 7e6),
+    float(input("R1 y (m) [default 0]: ") or 0.0),
+    float(input("R1 z (m) [default 0]: ") or 0.0)
 ])
 
-v_mean = np.array([
-    float(input("V0 x (m/s) [default 0]: ") or 0.0),
-    float(input("V0 y (m/s) [default sqrt(mu/r)]: ") or np.sqrt(mu_central/np.linalg.norm(r_mean))),
-    float(input("V0 z (m/s) [default 0]: ") or 0.0)
+r2 = np.array([
+    float(input("R2 x (m) [default 4.2e7]: ") or 4.2e7),
+    float(input("R2 y (m) [default 0]: ") or 0.0),
+    float(input("R2 z (m) [default 0]: ") or 0.0)
+])
+
+v2 = np.array([
+    float(input("V2 x (m/s) [default 0]: ") or 0.0),
+    float(input("V2 y (m/s) [default 3e3]: ") or 3e3),
+    float(input("V2 z (m/s) [default 0]: ") or 0.0)
+])
+
+# 4b. V1 fourni par Lambert
+v1_guess = np.array([
+    float(input("V1 x (m/s) [default 1e3]: ") or 1e3),
+    float(input("V1 y (m/s) [default 1e3]: ") or 1e3),
+    float(input("V1 z (m/s) [default 0]: ") or 0.0)
 ])
 
 
-# 5. Durée du transfert
-tof_hours = float(input("\nEnter transfer duration ΔT (hours) [default 720]: ") or 720)
-tof_seconds = tof_hours * 3600
+# 5. Paramètres Monte Carlo
+N_samples = int(input("Number of Monte Carlo samples [default 500]: ") or 500)
+tolerance_percent = float(input("Tolerance (percent) [default 1]: ") or 1.0)
+tof = float(input("Time of flight Δt (s) [default 86400 = 1 day]: ") or 86400)
+
+# --- Préparer les corps pour gravité ---
+bodies_mu = []
+for name in [central_body] + other_bodies:
+    mu = known_bodies[name][0]
+    r_body = np.array([0.0, 0.0, 0.0])  # approximation simple
+    bodies_mu.append((r_body, mu))
+
+tol = tolerance_percent / 100 * np.linalg.norm(r2 - r1)
+
+# --- Boucle Monte Carlo ---
+for i in trange(N_samples, desc="Monte Carlo Progress"):
+    best_f1 = np.inf
+    best_r2i = None
+    best_v1 = None
+    rng = np.random.default_rng(42)
+
+    for i in range(N_samples):
+        # Tirage uniforme ±1% autour de v1_guess
+        delta_v = rng.uniform(-0.01*np.linalg.norm(v1_guess), 0.01*np.linalg.norm(v1_guess), 3)
+        v1_trial = v1_guess + delta_v
+        # Propagation
+        state_f = propagate(r1, v1_trial, bodies_mu)
+        r2i = state_f[:3]
+
+        # Fonction de coût f1
+        f1 = f1_cost(r2, r2i)
+        print(f"Trial {i+1}: v1 = {v1_trial}, r2i = {r2i}, f1 = {f1}\n")
+
+        if f1 <= tol:
+            if f1 < best_f1:
+                print(f"✅New best f1: {f1} with v1: {v1_trial} and r2i: {r2i}\n")
+                best_f1 = f1
+                best_r2i = r2i
+                best_v1 = v1_trial
 
 
-# 6. Cible finale
-target_str = input("Enter target coordinates x,y,z (m) [default 1.5e11,0,0]: ") or "1.5e11,0,0"
-TARGET_B = np.array([float(x) for x in target_str.split(",")])
+# Fonction de coût f2
+f2 = best_f1
+
+# --- Résultats ---
+print("\n=== Résultat Monte Carlo ===")
+print(f"Vitesse initiale optimale v1 : {best_v1}")
+print(f"Position finale r2i : {best_r2i}")
+print(f"Fonction de coût f1 minimale : {best_f1}")
+print(f"Fonction de coût f2 : {f2}")
 
 
-# 7. Monte Carlo parameters
-N_SAMPLES = int(input("Number of Monte Carlo samples [default 500]: ") or 500)
-R_SPREAD = float(input("Position spread (m) [default 1e10]: ") or 1e10)
-V_SPREAD = float(input("Velocity spread (m/s) [default 1e3]: ") or 1e3)
-
-
-# 8. Boucle Monte Carlo
-best_score = np.inf
-best_r0 = None
-best_v0 = None
-rng = np.random.default_rng(42)
-
-for i in range(N_SAMPLES):
-    r0 = r_mean + rng.uniform(-R_SPREAD, R_SPREAD, size=3)
-    v0 = v_mean + rng.uniform(-V_SPREAD, V_SPREAD, size=3)
-
-    state_f = propagate(r0, v0, tof_seconds, mu_central, perturbers)
-    sc = score_final_state(state_f, TARGET_B)
-
-    if sc < best_score:
-        best_score = sc
-        best_r0 = r0
-        best_v0 = v0
-        #print(f"New best score: {best_score:.3e} m (sample {i+1})") # 
-        #print("r0:", best_r0)
-
-# 9. Résultats
-print(f"\nBest final distance to target: {best_score:.3e} m")
-write_docks_file(f"best_solution_mc_{body_selected}.txt", t0_str, best_r0, best_v0)
-
-#elapsed = time.time() - start_time
-#print(f"\nExecution time: {elapsed:.2f} seconds")
+# Générer fichier DOCKS
+write_docks_file(f"best_solution_mc_{central_body}.txt", t0_str, r1, best_v1)
 
 print("\n=== End of Monte Carlo Script ===")
-
