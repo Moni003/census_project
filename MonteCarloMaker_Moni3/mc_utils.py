@@ -25,25 +25,37 @@ def propagate(r0, v0, bodies_mu):
     
     Retourne l'état final [x,y,z,vx,vy,vz]
     """
-    def ode(t, y):
+    def ode(t, y):  # concaténation de v et a 
         r = y[:3]
         v = y[3:]
         a = nbody_accel(r, bodies_mu)
+        #print("y(t):", y)
+        #print(" a(t):", a)
+        #print(" v(t):", v)
+        #print(" r(t):", r)
+        #print("np.hstack((v, a)):", np.hstack((v, a)))
         return np.hstack((v, a))
-    
+
     y0 = np.hstack((r0, v0))
     
     # Temps d'intégration arbitraire : on peut prendre une grande valeur pour atteindre t2 mais ça va prendre du temps
-    t_final =1e9  # tof ?????????
+    t_final =2  # tof ?????????
     sol = solve_ivp(ode, [0, t_final], y0, rtol=1e-8, atol=1e-8)
+    print(" sol:", sol)
+    print(" sol.y:", sol.y)
+    print(" sol.y[:, -1]:", sol.y[:, -1])
     
     return sol.y[:, -1]
 
-def f1_cost(r_target, r_final):
+
+
+def f1_cost(r_target, r2i):
     """
     Fonction de coût f1 : norme de la distance finale par rapport à la cible
     """
-    return np.linalg.norm(r_target - r_final)
+    return np.linalg.norm(r_target - r2i)
+
+
 
 def write_docks_file(filename, t0_str, r0, v0):
     """
