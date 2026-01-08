@@ -1,0 +1,24 @@
+CIC_OEM_VERS = 2.0
+CREATION_DATE 	= 2026-01-04T12:34:22
+ORIGINATOR   	= DOCKS
+
+META_START
+
+COMMENT        DOCKS Propagator version 6.5
+COMMENT        Propagator Center of Computation : SUN
+COMMENT        Propagator method : RK4
+COMMENT        Column 1:2 Unit : Time (MJD)
+COMMENT        Column 3:5 Unit : Position (KM)
+COMMENT        Column 6:8 Unit : Velocity (KM/S)
+COMMENT        Column 9:11 Unit : Acceleration (KM/S^2)
+COMMENT        Acceleration is given in the Reference Frame Centered in the Propagator Center of Computation (SUN)
+
+OBJECT_NAME  = DOCKS_Sat
+OBJECT_ID    = CORPS
+
+CENTER_NAME  = SUN
+REF_FRAME    = ICRF
+TIME_SYSTEM  = TDB
+
+META_STOP
+

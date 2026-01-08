@@ -1,0 +1,20 @@
+=== RÉSULTATS FONCTION DE COÛT ===
+Date de calcul: 2026-01-04 16:42:56
+Fichier trajectoire: C:\Fac\M2_osae\census_project\MonteCarloMaker_Moni3\MonteCarlo\run_20260104_153954\traj5.txt
+Position cible r2: [-2.270000e+08, 0.000000e+00, 0.000000e+00] km
+
+FONCTION DE COÛT:
+f_i = 48019.842533 km
+
+DÉTAILS:
+Point optimal: 371312/371521
+Temps optimal: 50704.855556 MJD (1997-09-13 20:32:00 UTC)
+Position atteinte: [-2.269520e+08, -1.854116e+02, 3.017980e+02] km
+Erreur vectorielle: [-4.801854e+04, 1.854116e+02, -3.017980e+02] km
+
+ANALYSES COMPARATIVES:
+Position finale: [-2.269518e+08, -2.691958e+05, 3.024753e+02] km
+Temps final: 50705.000000 MJD (1997-09-14 00:00:00 UTC)
+Distance finale vs cible: 273481.030172 km
+Erreur vectorielle finale: [-4.822252e+04, 2.691958e+05, -3.024753e+02] km
+Amélioration optimale vs finale: 225461.187640 km

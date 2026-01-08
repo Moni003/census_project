@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project Revision="9952">
+ <General Name="" StartDateTime="61041 75837.813000" EndDateTime="61041 79437.813000"/>
+ <MetaData>
+  <Description></Description>
+ </MetaData>
+ <MonitorConfiguration>
+  <Monitor X="0" Y="0" Height="952" Width="1600"/>
+ </MonitorConfiguration>
+ <StartOptions TimeRatio="1" UseStateTimeRatio="0" SysTimeSynced="0" Paused="0" Looped="0" Minimized="0" Hidden="0" AutoClosed="0"/>
+ <Timeshifting Enabled="0"/>
+ <TimelineOptions ProjectLocked="1" CursorLocked="0" CursorRatio="0" ViewStart="33282 0.000000" ViewSpan="0" DateFormat="ISODate" NoBadgeFiltered="0" BadgeFiltered=""/>
+ <Sky>
+  <Sun>
+   <Prop2d>
+    <Icon Anchor="CENTER" Size="MEDIUM" Opacity="100">
+     <Font Size="8" Color="1 1 1"/>
+     <ImageLayer Type="Default"/>
+    </Icon>
+   </Prop2d>
+   <Track>
+    <LineStyle Color="0.862745 0.862745 0" Style="SolidLine" Width="1"/>
+   </Track>
+   <VisibilityCircle>
+    <LineStyle Color="0.501961 0.501961 0" Style="SolidLine" Width="1"/>
+    <FillStyle Color="0 0 0" Opacity="50"/>
+   </VisibilityCircle>
+  </Sun>
+  <StarCatalog CatalogMode="Builtin">
+   <Track>
+    <LineStyle Color="1 1 1" Style="DotLine" Width="1"/>
+   </Track>
+  </StarCatalog>
+ </Sky>
+ <ToBeUsedApps>
+  <Application Name="SurfaceView" Id="0" Label="" AutoStarted="1"/>
+ </ToBeUsedApps>
+ <Entities>
+  <Body Name="Earth" ParentPath="Sol">
+   <UseWGS84 Enabled="1"/>
+   <Prop2d>
+    <Icon Anchor="CENTER" Size="MEDIUM" Opacity="100">
+     <Font Size="8" Color="1 1 1"/>
+     <ImageLayer Type="Default"/>
+    </Icon>
+   </Prop2d>
+   <Track>
+    <LineStyle Color="0.147494 1 0" Style="SolidLine" Width="1"/>
+   </Track>
+   <VisibilityCircle>
+    <LineStyle Color="0 0.376165 1" Style="SolidLine" Width="1"/>
+    <FillStyle Color="0.499992 0.688075 1" Opacity="60"/>
+   </VisibilityCircle>
+   <EphemerisMode Mode="Default"/>
+   <Layers>
+    <BuiltinLayer Name="defaultLayer"/>
+   </Layers>
+  </Body>
+ </Entities>
+ <Events/>
+ <States>
+  <Instant Time="33282 0" TimeRatio="1" Label="Initial state">
+   <AppState Id="0"/>
+  </Instant>
+ </States>
+</Project>
